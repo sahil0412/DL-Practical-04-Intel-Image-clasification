@@ -41,14 +41,16 @@ def predict_image(model, img_array):
 
 def decode_prediction(prediction, class_names):
     predicted_class_index = np.argmax(prediction, axis=1)[0]
+    print("-------------------", predicted_class_index, prediction)
     predicted_class_name = class_names[predicted_class_index]
-    return predicted_class_name
+    confidence = int(prediction[0][predicted_class_index]*100)
+    return predicted_class_name, confidence
 
 def predict_indoor_image(img_path, model, class_names, target_size=(224, 224)):
     img_array = load_and_preprocess_image(img_path, target_size)
     prediction = predict_image(model, img_array)
-    predicted_class_name = decode_prediction(prediction, class_names)
-    return predicted_class_name
+    predicted_class_name, confidence = decode_prediction(prediction, class_names)
+    return predicted_class_name, confidence
 
 # Home page route
 @app.route('/')
@@ -68,11 +70,11 @@ def predict():
             file.save(filepath)
 
             # Read and preprocess the image
-            predicted_class_name = predict_indoor_image(filepath, model, class_names)
-            print(f'The predicted Image is: {predicted_class_name}')
+            predicted_class_name, confidence = predict_indoor_image(filepath, model, class_names)
+            print(f'The predicted Image is: {predicted_class_name} and confidence is {confidence}')
 
             # Pass prediction and image file path to result template
-            return render_template('result.html', prediction=predicted_class_name, image_file=filename)
+            return render_template('result.html', prediction=predicted_class_name,confidence = confidence, image_file=filename)
 
 if __name__ == '__main__':
     # Ensure the upload directory exists
